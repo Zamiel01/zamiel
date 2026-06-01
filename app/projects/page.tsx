@@ -61,6 +61,10 @@ export default function Projects() {
       if (index < 0 || index >= projects.length) return;
       setDirection(dir);
       setCurrent(index);
+      // Clear exit classes after transition completes (500ms)
+      setTimeout(() => {
+        setDirection("next"); // reset to neutral so exit classes are removed
+      }, 500);
     },
     []
   );

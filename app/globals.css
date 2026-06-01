@@ -285,7 +285,16 @@ html.light-theme .service-card { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); }
   .slider-navigation { justify-content: center; margin-top: 35px; }
   .slide-counter { display: none; }
   .project-slide:not(.active):not(.exit-left):not(.exit-right) { display: none; }
-  .project-slide.exit-right { opacity: 0; transform: translateX(60px); }
+  .project-slide.exit-left,
+  .project-slide.exit-right {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    opacity: 0;
+  }
+  .project-slide.exit-left { transform: translateX(-60px); }
+  .project-slide.exit-right { transform: translateX(60px); }
 }
 
 @media (max-width: 991px) {
