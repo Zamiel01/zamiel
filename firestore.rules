@@ -1,0 +1,64 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /memories/{memoryId} {
+      allow read: if true;
+
+      allow create: if
+        request.resource.data.keys().hasAll([
+          'url',
+          'publicId',
+          'width',
+          'height',
+          'bytes',
+          'format',
+          'createdAt',
+          'category'
+        ]) &&
+        request.resource.data.keys().hasOnly([
+          'url',
+          'publicId',
+          'width',
+          'height',
+          'bytes',
+          'format',
+          'createdAt',
+          'title',
+          'category'
+        ]) &&
+        request.resource.data.url is string &&
+        request.resource.data.url.matches(
+          '^https://res\\.cloudinary\\.com/[a-zA-Z0-9_-]+/image/upload/.*$'
+        ) &&
+        request.resource.data.publicId is string &&
+        request.resource.data.publicId.size() > 0 &&
+        request.resource.data.publicId.size() <= 256 &&
+        request.resource.data.publicId.matches('^[a-zA-Z0-9_/-]+$') &&
+        request.resource.data.width is int &&
+        request.resource.data.width > 0 &&
+        request.resource.data.width <= 30000 &&
+        request.resource.data.height is int &&
+        request.resource.data.height > 0 &&
+        request.resource.data.height <= 30000 &&
+        request.resource.data.bytes is int &&
+        request.resource.data.bytes > 0 &&
+        request.resource.data.bytes <= 10485760 &&
+        request.resource.data.format is string &&
+        request.resource.data.format in ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'] &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.category is string &&
+        request.resource.data.category in [
+          'hackathons',
+          'friends',
+          'family',
+          'events'
+        ] &&
+        (!request.resource.data.keys().hasAny(['title']) ||
+          (request.resource.data.title is string &&
+            request.resource.data.title.size() <= 120));
+
+      allow update, delete: if false;
+    }
+  }
+}

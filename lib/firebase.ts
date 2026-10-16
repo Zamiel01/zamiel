@@ -14,9 +14,21 @@ const firebaseConfig = {
 let app: ReturnType<typeof initializeApp>;
 let analytics: ReturnType<typeof getAnalytics> | undefined;
 
-if (typeof window !== "undefined") {
+const hasRequiredConfig = Boolean(
+  firebaseConfig.apiKey &&
+    firebaseConfig.projectId &&
+    firebaseConfig.appId
+);
+
+if (typeof window !== "undefined" && hasRequiredConfig) {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-  analytics = getAnalytics(app);
+  if (firebaseConfig.measurementId) {
+    try {
+      analytics = getAnalytics(app);
+    } catch {
+      analytics = undefined;
+    }
+  }
 }
 
 export { app, analytics };

@@ -10,6 +10,7 @@ const routes = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
   { href: "/projects", label: "Projects" },
+  { href: "/memories", label: "Memories" },
   { href: "/contact", label: "Contact" },
 ] as const;
 
