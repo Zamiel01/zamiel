@@ -642,7 +642,6 @@ export default function MemoriesGallery() {
                   <article className={styles.photoItem} key={photo.id}>
                     <button
                       className={styles.photoButton}
-                      style={{ aspectRatio: `${photo.width} / ${photo.height}` }}
                       type="button"
                       onClick={() => setActivePhoto(photo)}
                       aria-label={`View ${photoTitle}`}
