@@ -4,9 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "./components/ThemeProvider";
 import FirebaseProvider from "./components/FirebaseProvider";
 import { PageTransitionProvider } from "./components/PageTransitionProvider";
-import ConditionalSidebar from "./components/ConditionalSidebar";
-import MobileHeader from "./components/MobileHeader";
-import FloatingControls from "./components/FloatingControls";
+import SiteNavbar from "./components/SiteNavbar";
 import MainContent from "./components/MainContent";
 
 const poppins = Poppins({
@@ -33,13 +31,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${poppins.variable} ${caveat.variable} antialiased`}>
-      <body className="min-h-screen flex overflow-x-hidden select-none">
+      <body className="min-h-screen overflow-x-hidden select-none">
         <ThemeProvider>
           <FirebaseProvider>
             <PageTransitionProvider>
-              <MobileHeader />
-              <ConditionalSidebar />
-              <FloatingControls />
+              <SiteNavbar />
               <MainContent>{children}</MainContent>
             </PageTransitionProvider>
           </FirebaseProvider>

@@ -8,6 +8,7 @@ interface TransitionLinkProps {
   children: ReactNode;
   className?: string;
   active?: boolean;
+  "aria-current"?: "page";
   onClick?: () => void;
 }
 
@@ -16,6 +17,7 @@ export default function TransitionLink({
   children,
   className,
   active,
+  "aria-current": ariaCurrent,
   onClick,
 }: TransitionLinkProps) {
   const { navigate } = usePageTransition();
@@ -39,7 +41,12 @@ export default function TransitionLink({
   };
 
   return (
-    <a href={href} onClick={handleClick} className={className}>
+    <a
+      href={href}
+      onClick={handleClick}
+      className={className}
+      aria-current={active ? "page" : ariaCurrent}
+    >
       {children}
     </a>
   );
