@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "motion/react";
+import { motion, cubicBezier } from "motion/react";
 import { useEffect, useRef } from "react";
 import { usePageTransition } from "../components/PageTransitionProvider";
 import {
@@ -208,7 +208,7 @@ const journeyItem = {
     scale: 1,
     transition: {
       duration: 0.8,
-      ease: [0.16, 1, 0.3, 1],
+      ease: cubicBezier(0.16, 1, 0.3, 1),
     },
   },
 };
@@ -222,7 +222,7 @@ const timelineLine = {
     scaleY: 1,
     transition: {
       duration: 1.8,
-      ease: [0.16, 1, 0.3, 1],
+      ease: cubicBezier(0.16, 1, 0.3, 1),
     },
   },
 };
@@ -237,7 +237,7 @@ const cardHover = {
     scale: 1.015,
     transition: {
       duration: 0.35,
-      ease: [0.16, 1, 0.3, 1],
+      ease: cubicBezier(0.16, 1, 0.3, 1),
     },
   },
 };
@@ -282,7 +282,7 @@ function TimelineItem({
         transition={{
           duration: 0.7,
           delay: 0.15,
-          ease: [0.16, 1, 0.3, 1],
+          ease: cubicBezier(0.16, 1, 0.3, 1),
         }}
         className={`absolute left-10 top-5 h-[2px] w-6 origin-left md:hidden ${
           isEducation ? "bg-blue-500/80" : "bg-emerald-500/80"
@@ -296,7 +296,7 @@ function TimelineItem({
         transition={{
           duration: 0.7,
           delay: 0.15,
-          ease: [0.16, 1, 0.3, 1],
+          ease: cubicBezier(0.16, 1, 0.3, 1),
         }}
         className={`absolute left-1/2 top-5 hidden h-[2px] w-12 md:block origin-left ${
           isEducation ? "bg-blue-500/80" : "bg-emerald-500/80"
@@ -544,7 +544,7 @@ export default function About() {
         viewport={{ once: true }}
         transition={{
           duration: 0.7,
-          ease: [0.16, 1, 0.3, 1],
+          ease: cubicBezier(0.16, 1, 0.3, 1),
         }}
       >
         <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-2">
@@ -558,7 +558,7 @@ export default function About() {
           transition={{
             duration: 0.7,
             delay: 0.25,
-            ease: [0.16, 1, 0.3, 1],
+            ease: cubicBezier(0.16, 1, 0.3, 1),
           }}
           className="h-1 bg-white rounded"
         />
@@ -663,7 +663,7 @@ export default function About() {
           viewport={{ once: true, amount: 0.2 }}
           transition={{
             duration: 0.8,
-            ease: [0.16, 1, 0.3, 1],
+            ease: cubicBezier(0.16, 1, 0.3, 1),
           }}
         >
           <h2 className="text-3xl font-bold text-white mb-2">Skills</h2>
@@ -693,7 +693,7 @@ export default function About() {
               transition={{
                 duration: 0.7,
                 delay: categoryIndex * 0.05,
-                ease: [0.16, 1, 0.3, 1],
+                ease: cubicBezier(0.16, 1, 0.3, 1),
               }}
             >
               <div className="flex items-end justify-between gap-4 mb-4">
@@ -745,7 +745,7 @@ export default function About() {
                         scale: 1,
                         transition: {
                           duration: 0.45,
-                          ease: [0.16, 1, 0.3, 1],
+                          ease: cubicBezier(0.16, 1, 0.3, 1),
                         },
                       },
                     }}
@@ -799,7 +799,7 @@ export default function About() {
           }}
           transition={{
             duration: 0.8,
-            ease: [0.16, 1, 0.3, 1],
+            ease: cubicBezier(0.16, 1, 0.3, 1),
           }}
         >
           <h2 className="text-3xl font-bold text-white mb-2">
