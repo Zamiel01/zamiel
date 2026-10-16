@@ -1,13 +1,20 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import Script from "next/script";
 import TransitionLink from "./components/TransitionLink";
-import SplineViewer from "./components/SplineViewer";
-import { FaDownload, FaRotate } from "react-icons/fa6";
+import { usePageTransition } from "./components/PageTransitionProvider";
+import {
+  FaGithub,
+  FaLinkedin,
+  FaInstagram,
+  FaEnvelope,
+  FaCheck,
+  FaVolumeHigh,
+  FaDownload,
+} from "react-icons/fa6";
 
-const words = ["Web Developer", "Mobile Developer", "Pentester", "Graphic Designer"];
+const words = ["Software Engineer", "Web Developer", "Mobile Developer", "Design Engineer"];
 
 function useTypewriter() {
   const [displayed, setDisplayed] = useState("");
@@ -47,166 +54,163 @@ function useTypewriter() {
   return displayed;
 }
 
-function FlipCard({ id, width, height, borderRadius, frontContent, backContent }: any) {
-  const [flipped, setFlipped] = useState(false);
-  const [shake, setShake] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!flipped) {
-        setShake(true);
-        setTimeout(() => setShake(false), 700);
-      }
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [flipped]);
-
-  return (
-    <div
-      className={`flip-card ${flipped ? "flipped" : ""} ${shake ? "hint-shake" : ""}`}
-      id={id}
-      style={{ width, height, borderRadius: borderRadius || "0" }}
-      onClick={() => setFlipped(!flipped)}
-    >
-      <div className="flip-card-inner" style={{ borderRadius: borderRadius || "0" }}>
-        <div className="flip-card-front" style={{ borderRadius: borderRadius || "0", overflow: "hidden" }}>
-          {frontContent}
-        </div>
-        <div className="flip-card-back" style={{ borderRadius: borderRadius || "0", overflow: "hidden" }}>
-          {backContent}
-        </div>
-      </div>
-      {!borderRadius && (
-        <div className="flip-hint">
-          <FaRotate />
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function Home() {
   const typewriterText = useTypewriter();
+  const { navigate } = usePageTransition();
+  const navigating = useRef(false);
+
+  useEffect(() => {
+    const go = () => {
+      if (navigating.current) return;
+      navigating.current = true;
+      navigate("/about");
+    };
+
+    const atBottom = () =>
+      window.scrollY + window.innerHeight >=
+      document.documentElement.scrollHeight - 5;
+
+    const onWheel = (e: WheelEvent) => {
+      if (e.deltaY > 20 && atBottom()) go();
+    };
+
+    let startY = 0;
+    const onTouchStart = (e: TouchEvent) => {
+      startY = e.touches[0].clientY;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (startY - e.touches[0].clientY > 60 && atBottom()) go();
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (["ArrowDown", "PageDown"].includes(e.key) && atBottom()) go();
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: true });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("keydown", onKey);
+
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [navigate]);
 
   return (
-    <>
-      <Script
-        src="https://unpkg.com/@splinetool/viewer@1.9.48/build/spline-viewer.js"
-        type="module"
-        strategy="lazyOnload"
-      />
-      <div className="flex-1 min-h-screen flex items-center relative px-6 lg:px-24 py-12">
-        <div className="hero-bg-radar" />
-
-        <div className="w-full flex flex-col items-center text-center lg:text-left lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center relative z-10">
-          <div className="block lg:hidden mb-6" style={{ perspective: "1000px" }}>
-            <FlipCard
-              id="profile-flip-card-mobile"
-              width="220px"
-              height="220px"
-              borderRadius="50%"
-              frontContent={
-                <div className="w-full h-full rounded-full border-2 border-dashed border-[var(--primary-red)] overflow-hidden">
-                  <Image
-                    src="/hero2.png"
-                    alt="Nkuin Eugene Profile"
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                </div>
-              }
-              backContent={
-                <SplineViewer
-                  url="https://prod.spline.design/yF2DnayEXh1t-ohq/scene.splinecode"
-                  style={{ width: "100%", height: "100%", background: "transparent" }}
-                />
-              }
-            />
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-4 sm:p-6 lg:p-12 font-sans">
+      {/* Outer Card Container */}
+      <div className="w-full max-w-4xl bg-[#121212] border border-[#222222] rounded-3xl p-6 sm:p-10 lg:p-12 shadow-2xl">
+        <div className="flex flex-col lg:flex-row items-center lg:items-stretch gap-8 lg:gap-12">
+          {/* Left Column: Profile Picture */}
+          <div className="flex items-center justify-center lg:w-1/2 lg:pr-8 lg:border-r lg:border-[#222222] border-b lg:border-b-0 border-[#222222] pb-8 lg:pb-0 w-full">
+            <div className="relative w-48 h-48 sm:w-56 sm:h-56 lg:w-72 lg:h-72 rounded-full overflow-hidden border-2 border-[#2a2a2a] bg-[#1a1a1a] shadow-inner flex-shrink-0">
+              <Image
+                src="/hero2.png"
+                alt="Nkuin Eugene Profile"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
           </div>
 
-          <div className="lg:col-span-7 space-y-4 lg:space-y-6 flex flex-col items-center lg:items-start w-full mt-2 lg:mt-0">
-            <h1 className="text-3xl lg:text-5xl font-bold tracking-tight leading-tight">
-              Hello, my name is <br className="hidden lg:block" />
-              <span className="text-accent-red font-handwritten text-4xl lg:text-6xl block mt-2 lg:inline lg:mt-0">
-                Nkuin Eugene
+          {/* Right Column: Bio & Info */}
+          <div className="flex flex-col justify-center lg:w-1/2 w-full space-y-6">
+            {/* Top Label / Tag */}
+            <div>
+              <span className="text-xs tracking-[0.2em] font-mono text-[#888888] uppercase">
+                PORTFOLIO
               </span>
-            </h1>
-
-            <h2 className="text-2xl lg:text-4xl font-bold pb-2 lg:pb-0">
-              I'm a <span className="text-accent-red">{typewriterText}</span>
-              <span className="cursor-blink">|</span>
-            </h2>
-
-            <p className="text-[var(--text-muted)] text-[15px] lg:text-base max-w-xl leading-relaxed opacity-90 px-2 lg:px-0">
-              I'm Nkuin Eugene Mbeng, a Software Engineer with over 3 years of experience building mobile and web applications.
-              <span className="hidden md:inline">
-                {" "}I specialize in Flutter for mobile and React/Next.js/Angular for the web, with solid backend skills in FastAPI and Python.
-              </span>
-            </p>
-
-            <div className="hidden md:flex flex-wrap justify-center lg:justify-start gap-2 pt-2 max-w-xl">
-              {["Flutter", "Angular", "React", "Next.js", "FastAPI", "NestJS", "Python", "TypeScript", "Ubuntu VPS", "Nginx", "CI/CD"].map(
-                (badge) => (
-                  <span
-                    key={badge}
-                    className="bg-badge text-[11px] tracking-wider uppercase px-3 py-1.5 rounded-full font-semibold border"
-                  >
-                    {badge}
-                  </span>
-                )
-              )}
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4 lg:pt-6 w-full sm:w-auto pb-8 lg:pb-0">
+            {/* Name with Verified Badge */}
+            <div className="flex items-center space-x-3 pt-1 border-t border-[#222222] sm:border-t-0 sm:pt-0">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">
+                Nkuin Eugene
+              </h1>
+              <div className="flex items-center space-x-1.5 text-[#888888]">
+                <div className="w-5 h-5 rounded-full border border-[#444] flex items-center justify-center bg-[#1a1a1a]">
+                  <FaCheck className="text-[10px] text-white" />
+                </div>
+                <FaVolumeHigh className="text-xs cursor-pointer hover:text-white transition-colors" />
+              </div>
+            </div>
+
+            {/* Role / Subtitle with Typewriter */}
+            <div className="space-y-2">
+              <h2 className="text-lg sm:text-xl font-semibold text-white">
+                {typewriterText}
+                <span className="animate-pulse">|</span>
+              </h2>
+              <p className="text-[#a0a0a0] text-sm sm:text-base leading-relaxed">
+                Bridging the gap between robust software engineering and pixel-perfect design. Building clean, accessible web and mobile interfaces with React, Next.js, and Flutter.
+              </p>
+            </div>
+
+            {/* Tech Badges / Skills */}
+            <div className="flex flex-wrap gap-2 pt-2">
+              {["Flutter", "React", "Next.js", "Angular", "FastAPI", "TypeScript", "Python"].map((skill) => (
+                <span
+                  key={skill}
+                  className="bg-[#1e1e1e] text-[#cccccc] border border-[#2a2a2a] text-xs px-3 py-1 rounded-full font-medium"
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
+
+            {/* Action Buttons & Social Icons */}
+            <div className="pt-4 flex flex-wrap items-center gap-3">
               <TransitionLink
                 href="/about"
-                className="btn-action btn-fill text-center text-sm px-[35px] py-[13px] rounded-[30px] font-semibold w-full sm:w-auto"
+                className="inline-flex items-center justify-center space-x-2 bg-white text-black font-semibold px-6 py-2.5 rounded-full text-sm hover:bg-[#e0e0e0] transition-colors"
               >
-                More About Me
+                <FaEnvelope className="text-sm" />
+                <span>Contact Me</span>
               </TransitionLink>
+
               <a
                 href="/cv/NKUIN 2026 v2.pdf"
                 download
-                className="btn-action btn-outline text-center text-sm px-[35px] py-[13px] rounded-[30px] font-semibold flex items-center justify-center space-x-2 w-full sm:w-auto"
+                className="w-10 h-10 rounded-full border border-[#333333] bg-[#161616] flex items-center justify-center text-white hover:bg-[#222222] transition-colors"
+                title="Download CV"
               >
-                <FaDownload className="text-sm" />
-                <span>Download CV</span>
+                <FaDownload className="text-xs" />
+              </a>
+
+              <a
+                href="https://github.com"
+                target="_blank"
+                rel="noreferrer"
+                className="w-10 h-10 rounded-full border border-[#333333] bg-[#161616] flex items-center justify-center text-[#aaaaaa] hover:text-white hover:bg-[#222222] transition-colors"
+              >
+                <FaGithub className="text-sm" />
+              </a>
+
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noreferrer"
+                className="w-10 h-10 rounded-full border border-[#333333] bg-[#161616] flex items-center justify-center text-[#aaaaaa] hover:text-white hover:bg-[#222222] transition-colors"
+              >
+                <FaLinkedin className="text-sm" />
+              </a>
+
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noreferrer"
+                className="w-10 h-10 rounded-full border border-[#333333] bg-[#161616] flex items-center justify-center text-[#aaaaaa] hover:text-white hover:bg-[#222222] transition-colors"
+              >
+                <FaInstagram className="text-sm" />
               </a>
             </div>
           </div>
-
-          <div className="hidden lg:block lg:col-span-5 relative p-4 justify-self-end">
-            <FlipCard
-              id="profile-flip-card"
-              width="340px"
-              height="440px"
-              frontContent={
-                <>
-                  <div className="frame-corner absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 z-10" />
-                  <div className="frame-corner absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 z-10" />
-                  <div className="w-[340px] h-[440px] overflow-hidden shadow-2xl relative border-theme border">
-                    <Image
-                      src="/hero2.png"
-                      alt="Nkuin Eugene Profile"
-                      fill
-                      className="object-cover"
-                      priority
-                    />
-                  </div>
-                </>
-              }
-              backContent={
-                <SplineViewer
-                  url="https://prod.spline.design/yF2DnayEXh1t-ohq/scene.splinecode"
-                  loading="lazy"
-                  style={{ width: "100%", height: "100%", background: "transparent" }}
-                />
-              }
-            />
-          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

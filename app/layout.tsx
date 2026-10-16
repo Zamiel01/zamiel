@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { Poppins, Caveat } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./components/ThemeProvider";
+import FirebaseProvider from "./components/FirebaseProvider";
 import { PageTransitionProvider } from "./components/PageTransitionProvider";
-import Sidebar from "./components/Sidebar";
+import ConditionalSidebar from "./components/ConditionalSidebar";
 import MobileHeader from "./components/MobileHeader";
-import MobileBottomNav from "./components/MobileBottomNav";
 import FloatingControls from "./components/FloatingControls";
+import MainContent from "./components/MainContent";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -34,15 +35,14 @@ export default function RootLayout({
     <html lang="en" className={`${poppins.variable} ${caveat.variable} antialiased`}>
       <body className="min-h-screen flex overflow-x-hidden select-none">
         <ThemeProvider>
-          <PageTransitionProvider>
-            <MobileHeader />
-            <Sidebar />
-            <FloatingControls />
-            <main className="flex-1 ml-[280px] min-h-screen relative">
-              {children}
-            </main>
-            <MobileBottomNav />
-          </PageTransitionProvider>
+          <FirebaseProvider>
+            <PageTransitionProvider>
+              <MobileHeader />
+              <ConditionalSidebar />
+              <FloatingControls />
+              <MainContent>{children}</MainContent>
+            </PageTransitionProvider>
+          </FirebaseProvider>
         </ThemeProvider>
       </body>
     </html>
