@@ -266,7 +266,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 2.7rem 1rem 0.85rem;
-  background: linear-gradient(transparent, rgb(0 0 0 / 72%));
+  background: linear-gradient(transparent, rgb(0 0 0 / 40%));
   color: #fff;
   font-size: 0.7rem;
   opacity: 0;
@@ -927,7 +927,7 @@
     padding-right: 0.55rem;
     padding-left: 0.55rem;
     font-size: 0.62rem;
-    opacity: 1;
+    opacity: 0;
   }
 
   .uploadDialog {
