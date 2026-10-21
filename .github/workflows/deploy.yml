@@ -6,6 +6,12 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  BASE: /var/www/portfolio
+  RELEASE_DIR: /var/www/portfolio/releases/${{ github.sha }}
+  SSH_OPTS: -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no
+  REMOTE: ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -14,8 +20,8 @@ jobs:
       - name: Get source code
         uses: actions/checkout@v4
 
-      - name: builds project
-        run: npm install && npm run build
+      - name: Build project
+        run: npm ci && npm run build
 
       - name: Prepare SSH key
         run: |
@@ -23,15 +29,39 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-      - name: Ensure remote directory exists
-        run: ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }} "mkdir -p /var/www/portfolio/zamiel"
+      - name: Create release directory
+        run: ssh $SSH_OPTS $REMOTE "mkdir -p $RELEASE_DIR"
 
-      - name: Deploy out to server
+      - name: Upload build to release directory
         run: |
-          rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p 22" out/ ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }}:/var/www/portfolio/zamiel/
+          rsync -avz -e "ssh $SSH_OPTS -p 22" out/ $REMOTE:$RELEASE_DIR/
 
-      - name: Restart pm2 process
-        run: ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }} "pm2 restart all"
+      - name: Activate release (auto-rollback on failure)
+        run: |
+          ssh $SSH_OPTS $REMOTE bash -s -- "$RELEASE_DIR" "$BASE" <<'EOF'
+          set -euo pipefail
+          NEW_RELEASE="$1"
+          BASE="$2"
+          PREVIOUS_RELEASE="$(readlink -f "$BASE/current" || true)"
 
-      - name: restart nginx
-        run: ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }} "sudo systemctl restart nginx"
+          # Switch to the new release
+          ln -sfn "$NEW_RELEASE" "$BASE/current"
+          sudo systemctl reload nginx
+
+          # Verify the site responds
+          sleep 2
+          if ! curl -fsS -o /dev/null http://127.0.0.1/; then
+            echo "Health check failed. Restoring previous release."
+            if [ -n "$PREVIOUS_RELEASE" ]; then
+              ln -sfn "$PREVIOUS_RELEASE" "$BASE/current"
+              sudo systemctl reload nginx
+            fi
+            exit 1
+          fi
+
+          echo "Deployment successful"
+
+          # Keep only the 5 newest releases
+          cd "$BASE/releases"
+          ls -1dt */ | tail -n +6 | xargs -r rm -rf
+          EOF
