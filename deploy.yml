@@ -10,41 +10,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source code
+      - name: Get source code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: gets code 
+        run: git clone https://github.com/Zamiel01/zamiel.git
+
+      - name: builds project
+        run: npm install && npm run build
+
+      - name: Deploy to server into directory /var/www/portfolio/zamiel
+        uses: easingthemes/ssh-deploy@v2.1.5
         with:
-          node-version: 20
-          cache: npm
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          remote-user: ${{ secrets.REMOTE_USER }}
+          server-ip: ${{ secrets.SERVER_IP }}
+          remote-path: /var/www/portfolio/zamiel
+          local-path: ./dist
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Restart pm2 process
+        run: ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }} "pm2 restart all"
 
-      - name: Build Next.js application
-        run: npm run build
+      - name: restart nginx
+        run: ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }} "sudo systemctl restart nginx"
 
-      - name: Deploy to EC2
-        uses: easingthemes/ssh-deploy@v5.1.0
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.SERVER_IP }}
-          REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          TARGET: /var/www/portfolio/zamiel
-          SOURCE: .next/
-
-      - name: Diagnose SSH private key
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          python3 - <<'PY'
-          import os
-          key = os.environ.get("SSH_PRIVATE_KEY", "")
-          print("Key present:", bool(key))
-          print("Key length:", len(key))
-          print("Has OpenSSH header:", key.startswith("-----BEGIN OPENSSH PRIVATE KEY-----"))
-          print("Has footer:", key.strip().endswith("-----END OPENSSH PRIVATE KEY-----"))
-          print("Contains literal \\n:", "\\n" in key)
-          PY
-
+      
