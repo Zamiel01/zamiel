@@ -50,7 +50,7 @@ jobs:
 
           # Verify the site responds
           sleep 2
-          if ! curl -fsS -o /dev/null http://127.0.0.1/; then
+          if ! curl -fsS -o /dev/null http://127.0.0.1:3000/; then
             echo "Health check failed. Restoring previous release."
             if [ -n "$PREVIOUS_RELEASE" ]; then
               ln -sfn "$PREVIOUS_RELEASE" "$BASE/current"
