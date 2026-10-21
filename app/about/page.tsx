@@ -609,7 +609,7 @@ export default function About() {
           </p>
 
           <p className="text-[#aaaaaa] text-sm leading-relaxed">
-            At EFARM, I shipped a Flutter app live on the Apple App Store and Google Play, building a platform serving 8,193 users—improving order completion by 40%, checkout conversion by 25%, and load times by 40%[cite: 4]. I've also dockerized REST APIs and deployed them to live AWS EC2 instances[cite: 4].
+            A EFARM, I shipped a Flutter app live on the Apple App Store and Google Play, building a platform serving 8,193 users—improving order completion by 40%, checkout conversion by 25%, and load times by 40%[cite: 4]. I've also dockerized REST APIs and deployed them to live AWS EC2 instances[cite: 4].
           </p>
 
           {/* Quick Highlight Badges / Mini Stats */}
