@@ -17,17 +17,18 @@ jobs:
       - name: builds project
         run: npm install && npm run build
 
-      - name: Deploy to server into directory /var/www/portfolio/zamiel
-        uses: easingthemes/ssh-deploy@v2.1.5
-        with:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.SERVER_IP }}
-          REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          SOURCE: .next
-          TARGET: /var/www/portfolio/zamiel
+      - name: Prepare SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Deploy .next to server
+        run: |
+          rsync -avz -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p 22" .next/ ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }}:/var/www/portfolio/zamiel/
 
       - name: Restart pm2 process
-        run: ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }} "pm2 restart all"
+        run: ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }} "pm2 restart all"
 
       - name: restart nginx
-        run: ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }} "sudo systemctl restart nginx"
+        run: ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }} "sudo systemctl restart nginx"
