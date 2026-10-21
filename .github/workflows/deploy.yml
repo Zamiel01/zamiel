@@ -23,9 +23,12 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-      - name: Deploy .next to server
+      - name: Ensure remote directory exists
+        run: ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }} "mkdir -p /var/www/portfolio/zamiel"
+
+      - name: Deploy out to server
         run: |
-          rsync -avz -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p 22" .next/ ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }}:/var/www/portfolio/zamiel/
+          rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -p 22" out/ ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }}:/var/www/portfolio/zamiel/
 
       - name: Restart pm2 process
         run: ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }} "pm2 restart all"
