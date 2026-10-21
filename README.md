@@ -51,3 +51,22 @@ firebase deploy --only firestore:rules
 Each new `memories` document stores the Cloudinary image metadata (`url`, `publicId`, `width`, `height`, `bytes`, `format`, and server `createdAt`), an optional `title`, and a required lowercase `category` (`hackathons`, `friends`, `family`, or `events`). The rules allow anyone to read gallery entries and create entries only when their fields, Cloudinary image URL, dimensions, format, category, optional title, byte count (at most 10 MiB), and server timestamp match the gallery schema. Older entries without a category remain visible as Uncategorized. Direct client updates and deletes remain denied. Because this project uses Next.js static export, saved photo editing and deletion are not available; enabling them safely requires a separate authenticated server-side mutation service. Do not enable public Firestore updates or deletes.
 
 In Cloudinary Console, create an upload preset under **Settings → Upload → Upload presets**. Set its signing mode to **Unsigned**, allow only `jpg`, `jpeg`, `png`, `webp`, `gif`, and `avif`, and set the preset's maximum original file size to **10 MiB (10,485,760 bytes)**. Keep overwriting disabled and use a generated public ID. Set the two Cloudinary environment variables above to the account cloud name and this preset name. The page also rejects unsupported MIME types and files larger than 10 MiB in the browser; the preset limit is required because client-side checks can be bypassed.
+
+## Blog setup
+
+The `/blog` page reads published articles from the Firestore `blogPosts` collection. It uses Firebase Authentication for a private email/password editor; publishing, drafts, edits, and deletion are restricted by Firestore rules to `nkuinmbeng@gmail.com`. Public visitors can only read published posts. The editor uses the blog document ID as its URL slug and stores plain-text paragraphs separated by blank lines. Article reading is rendered client-side at `/blog/?post=<slug>` so new Firestore posts work with this project's static export without adding server routes or rebuilds.
+
+Configure the Firebase client variables listed above (`NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, and `NEXT_PUBLIC_FIREBASE_APP_ID`) for local development and the static hosting environment. In Firebase Console:
+
+1. Enable **Authentication → Sign-in method → Email/Password** and create the editor account for `nkuinmbeng@gmail.com` under **Authentication → Users**. Public registration is not provided.
+2. Create or enable **Cloud Firestore**.
+3. In **Firestore Database → Rules**, publish the rules from `firestore.rules`. The editor account is identified by its exact email address, so no Admin SDK, custom claims, Google Cloud CLI, or service-account key is needed.
+4. Enable **Authentication → Sign-in method → Anonymous**. Readers use a Firebase anonymous session for likes and comments; they do not need a public account. If anonymous sign-in is disabled, engagement submissions are denied.
+5. Alternatively, deploy the included gallery and blog Firestore rules with the Firebase CLI:
+
+   ```sh
+   firebase use <firebase-project-id>
+   firebase deploy --only firestore:rules
+   ```
+
+The blog schema is validated by `firestore.rules`; updates cannot change an article's URL slug or original author, and clients cannot access drafts. Published articles expose live like totals and comment threads, but counts are derived from the `likes` subcollection rather than mutable post fields. Authenticated users may create or delete only their own likes and comments; comment editing and broad public writes are not allowed. Anonymous users are identified as “Guest reader” in the thread. Keep Admin SDK credentials out of this static client application. Because static export has no request-time server or dynamic route fallback, article URLs are query-addressed on the single exported blog page; the page itself, article content, and engagement are fetched from Firestore in the browser.

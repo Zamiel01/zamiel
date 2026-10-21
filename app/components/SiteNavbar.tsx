@@ -10,6 +10,7 @@ const routes = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
   { href: "/projects", label: "Projects" },
+  { href: "/blog", label: "Blog" },
   { href: "/memories", label: "Memories" },
   { href: "/contact", label: "Contact" },
 ] as const;
@@ -19,7 +20,7 @@ const focusableElements =
 
 function isCurrentRoute(pathname: string, href: string) {
   const normalizedPath = pathname === "/" ? pathname : pathname.replace(/\/+$/, "");
-  return normalizedPath === href;
+  return normalizedPath === href || (href !== "/" && normalizedPath.startsWith(`${href}/`));
 }
 
 export default function SiteNavbar() {

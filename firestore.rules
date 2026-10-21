@@ -60,5 +60,133 @@ service cloud.firestore {
 
       allow update, delete: if false;
     }
+
+    function isBlogAdmin() {
+      return request.auth != null &&
+        request.auth.token.email == 'nkuinmbeng@gmail.com';
+    }
+
+    function validBlogPost(data) {
+      return data.keys().hasAll([
+          'title',
+          'slug',
+          'excerpt',
+          'content',
+          'category',
+          'coverImage',
+          'status',
+          'authorId',
+          'createdAt',
+          'updatedAt',
+          'publishedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'title',
+          'slug',
+          'excerpt',
+          'content',
+          'category',
+          'coverImage',
+          'status',
+          'authorId',
+          'createdAt',
+          'updatedAt',
+          'publishedAt'
+        ]) &&
+        data.title is string &&
+        data.title.size() > 0 &&
+        data.title.size() <= 160 &&
+        data.slug is string &&
+        data.slug.matches('^[a-z0-9]+(-[a-z0-9]+)*$') &&
+        data.slug.size() <= 90 &&
+        data.excerpt is string &&
+        data.excerpt.size() > 0 &&
+        data.excerpt.size() <= 300 &&
+        data.content is string &&
+        data.content.size() > 0 &&
+        data.content.size() <= 50000 &&
+        data.category is string &&
+        data.category.size() > 0 &&
+        data.category.size() <= 40 &&
+        (data.coverImage == null ||
+          (data.coverImage is string &&
+            data.coverImage.matches('^https://[^\\s]+$') &&
+            data.coverImage.size() <= 2048)) &&
+        data.status in ['draft', 'published'] &&
+        data.authorId is string &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp &&
+        (data.publishedAt == null || data.publishedAt is timestamp);
+    }
+
+    match /blogPosts/{postId} {
+      allow read: if resource.data.status == 'published' || isBlogAdmin();
+
+      allow create: if isBlogAdmin() &&
+        validBlogPost(request.resource.data) &&
+        request.resource.data.authorId == request.auth.uid &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.updatedAt == request.time &&
+        ((request.resource.data.status == 'published' &&
+            request.resource.data.publishedAt == request.time) ||
+          (request.resource.data.status == 'draft' &&
+            request.resource.data.publishedAt == null));
+
+      allow update: if isBlogAdmin() &&
+        validBlogPost(request.resource.data) &&
+        request.resource.data.authorId == resource.data.authorId &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.updatedAt == request.time &&
+        ((request.resource.data.status == 'published' &&
+            ((resource.data.status == 'published' &&
+                request.resource.data.publishedAt == resource.data.publishedAt) ||
+              (resource.data.status == 'draft' &&
+                request.resource.data.publishedAt == request.time))) ||
+          (request.resource.data.status == 'draft' &&
+            request.resource.data.publishedAt == null));
+
+      allow delete: if isBlogAdmin();
+
+      function isPublishedPost() {
+        return exists(/databases/$(database)/documents/blogPosts/$(postId)) &&
+          get(/databases/$(database)/documents/blogPosts/$(postId)).data.status == 'published';
+      }
+
+      match /comments/{commentId} {
+        allow read: if isPublishedPost();
+
+        allow create: if isPublishedPost() &&
+          request.auth != null &&
+          request.resource.data.keys().hasAll(['authorId', 'body', 'createdAt']) &&
+          request.resource.data.keys().hasOnly(['authorId', 'body', 'createdAt']) &&
+          request.resource.data.authorId == request.auth.uid &&
+          request.resource.data.body is string &&
+          request.resource.data.body.size() > 0 &&
+          request.resource.data.body.size() <= 1000 &&
+          request.resource.data.body.matches('.*\\S.*') &&
+          request.resource.data.createdAt == request.time;
+
+        allow delete: if isPublishedPost() &&
+          request.auth != null &&
+          resource.data.authorId == request.auth.uid;
+      }
+
+      match /likes/{userId} {
+        allow read: if isPublishedPost();
+
+        allow create: if isPublishedPost() &&
+          request.auth != null &&
+          userId == request.auth.uid &&
+          request.resource.data.keys().hasAll(['uid', 'createdAt']) &&
+          request.resource.data.keys().hasOnly(['uid', 'createdAt']) &&
+          request.resource.data.uid == request.auth.uid &&
+          request.resource.data.createdAt == request.time;
+
+        allow delete: if isPublishedPost() &&
+          request.auth != null &&
+          userId == request.auth.uid &&
+          resource.data.uid == request.auth.uid;
+      }
+    }
   }
 }

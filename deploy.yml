@@ -1,0 +1,37 @@
+name: Deploy Portfolio
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get source code
+        uses: actions/checkout@v4
+
+      - name: gets code 
+        run: git clone https://github.com/Zamiel01/zamiel.git
+
+      - name: builds project
+        run: npm install && npm run build
+
+      - name: Deploy to server into directory /var/www/portfolio/zamiel
+        uses: easingthemes/ssh-deploy@v2.1.5
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          remote-user: ${{ secrets.REMOTE_USER }}
+          server-ip: ${{ secrets.SERVER_IP }}
+          remote-path: /var/www/portfolio/zamiel
+          local-path: ./dist
+
+      - name: Restart pm2 process
+        run: ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }} "pm2 restart all"
+
+      - name: restart nginx
+        run: ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.SERVER_IP }} "sudo systemctl restart nginx"
+
+      
