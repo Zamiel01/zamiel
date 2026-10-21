@@ -34,3 +34,17 @@ jobs:
           TARGET: /var/www/portfolio/zamiel
           SOURCE: .next/
 
+      - name: Diagnose SSH private key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          python3 - <<'PY'
+          import os
+          key = os.environ.get("SSH_PRIVATE_KEY", "")
+          print("Key present:", bool(key))
+          print("Key length:", len(key))
+          print("Has OpenSSH header:", key.startswith("-----BEGIN OPENSSH PRIVATE KEY-----"))
+          print("Has footer:", key.strip().endswith("-----END OPENSSH PRIVATE KEY-----"))
+          print("Contains literal \\n:", "\\n" in key)
+          PY
+
